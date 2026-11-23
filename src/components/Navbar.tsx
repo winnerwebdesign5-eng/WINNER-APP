@@ -3,7 +3,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { ArrowUpRight, Menu, X } from 'lucide-react';
 import { NAV_LINKS } from '../data/agencyData';
 
-export type AppRoute = 'home' | 'about' | 'services' | 'portfolio' | 'contact';
+export type AppRoute = 'home' | 'about' | 'services' | 'portfolio' | 'contact' | 'admin';
 
 interface NavbarProps {
   currentRoute: AppRoute;

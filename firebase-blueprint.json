@@ -1,0 +1,138 @@
+{
+  "entities": {
+    "PortfolioProject": {
+      "title": "PortfolioProject",
+      "description": "A creative digital agency project uploaded by the admin for public showcase on the Portfolio page.",
+      "type": "object",
+      "properties": {
+        "projectName": {
+          "type": "string",
+          "description": "Brand or client project name.",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "title": {
+          "type": "string",
+          "description": "Display headline or project title.",
+          "minLength": 2,
+          "maxLength": 140
+        },
+        "category": {
+          "type": "string",
+          "description": "Service or industry category for the project.",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "liveUrl": {
+          "type": "string",
+          "description": "Live public website URL for the project.",
+          "minLength": 8,
+          "maxLength": 500,
+          "pattern": "^https?://.+"
+        },
+        "description": {
+          "type": "string",
+          "description": "Concise overview of the delivered project.",
+          "minLength": 10,
+          "maxLength": 1500
+        },
+        "challenge": {
+          "type": "string",
+          "description": "Key business or UX challenge faced in the project.",
+          "minLength": 10,
+          "maxLength": 2000
+        },
+        "approach": {
+          "type": "string",
+          "description": "Design and engineering approach taken to solve the challenge.",
+          "minLength": 10,
+          "maxLength": 2000
+        },
+        "thumbnailUrl": {
+          "type": "string",
+          "description": "Project thumbnail image URL or compressed inline data URI for live preview cards.",
+          "minLength": 1,
+          "maxLength": 220000
+        },
+        "published": {
+          "type": "boolean",
+          "description": "Whether the project is publicly visible on the Portfolio page."
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the admin who created the project.",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the project was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the project was last updated."
+        }
+      },
+      "required": [
+        "projectName",
+        "title",
+        "category",
+        "liveUrl",
+        "description",
+        "challenge",
+        "approach",
+        "thumbnailUrl",
+        "published",
+        "ownerId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AdminRole": {
+      "title": "AdminRole",
+      "description": "Authorized admin role mapping for Winner Designs portfolio management.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the admin user.",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Verified email address of the admin user.",
+          "maxLength": 254
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin"],
+          "description": "Role granted to the user."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the admin record was created."
+        }
+      },
+      "required": ["uid", "email", "role", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/projects/{projectId}": {
+      "schema": {
+        "$ref": "#/entities/PortfolioProject"
+      },
+      "description": "Portfolio projects managed in the Admin Dashboard and displayed publicly when published."
+    },
+    "/admins/{userId}": {
+      "schema": {
+        "$ref": "#/entities/AdminRole"
+      },
+      "description": "Admin role records used for Firestore security authorization."
+    }
+  }
+}

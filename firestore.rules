@@ -1,0 +1,169 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isBootstrappedAdmin() {
+      return isVerifiedUser() && request.auth.token.email == 'winnerwebdesign5@gmail.com';
+    }
+
+    function isAdmin() {
+      return isBootstrappedAdmin() || (
+        isVerifiedUser() &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidProject(data) {
+      return data.keys().hasAll([
+          'projectName',
+          'title',
+          'category',
+          'liveUrl',
+          'description',
+          'challenge',
+          'approach',
+          'thumbnailUrl',
+          'published',
+          'ownerId',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'projectName',
+          'title',
+          'category',
+          'liveUrl',
+          'description',
+          'challenge',
+          'approach',
+          'thumbnailUrl',
+          'published',
+          'ownerId',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.projectName is string
+        && data.projectName.size() >= 2
+        && data.projectName.size() <= 100
+        && data.title is string
+        && data.title.size() >= 2
+        && data.title.size() <= 140
+        && data.category is string
+        && data.category.size() >= 2
+        && data.category.size() <= 80
+        && data.liveUrl is string
+        && data.liveUrl.size() >= 8
+        && data.liveUrl.size() <= 500
+        && data.liveUrl.matches('^https?://.+')
+        && data.description is string
+        && data.description.size() >= 10
+        && data.description.size() <= 1500
+        && data.challenge is string
+        && data.challenge.size() >= 10
+        && data.challenge.size() <= 2000
+        && data.approach is string
+        && data.approach.size() >= 10
+        && data.approach.size() <= 2000
+        && data.thumbnailUrl is string
+        && data.thumbnailUrl.size() >= 1
+        && data.thumbnailUrl.size() <= 220000
+        && (
+          data.thumbnailUrl.matches('^https?://.+') ||
+          data.thumbnailUrl.matches('^/.+') ||
+          data.thumbnailUrl.matches('^data:image/(png|jpeg|webp);base64,.+')
+        )
+        && data.published is bool
+        && data.ownerId is string
+        && data.ownerId.size() >= 1
+        && data.ownerId.size() <= 128
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidAdminRole(data, targetUid) {
+      return data.keys().hasAll(['uid', 'email', 'role', 'createdAt'])
+        && data.keys().hasOnly(['uid', 'email', 'role', 'createdAt'])
+        && data.uid is string
+        && data.uid == targetUid
+        && data.uid.size() >= 1
+        && data.uid.size() <= 128
+        && data.email is string
+        && data.email.size() >= 3
+        && data.email.size() <= 254
+        && data.role == 'admin'
+        && data.createdAt is timestamp;
+    }
+
+    match /projects/{projectId} {
+      allow get: if isValidId(projectId) && (existing().published == true || isAdmin());
+      allow list: if resource.data.published == true || (
+        isVerifiedUser() && (
+          resource.data.ownerId == request.auth.uid ||
+          request.auth.token.email == 'winnerwebdesign5@gmail.com'
+        )
+      );
+      allow create: if isValidId(projectId)
+        && isAdmin()
+        && isValidProject(incoming())
+        && incoming().ownerId == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(projectId)
+        && isAdmin()
+        && isValidProject(incoming())
+        && incoming().ownerId == existing().ownerId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'projectName',
+          'title',
+          'category',
+          'liveUrl',
+          'description',
+          'challenge',
+          'approach',
+          'thumbnailUrl',
+          'published',
+          'updatedAt'
+        ]);
+      allow delete: if isValidId(projectId) && isAdmin();
+    }
+
+    match /admins/{userId} {
+      allow get: if isValidId(userId) && isVerifiedUser() && (
+        request.auth.uid == userId || isBootstrappedAdmin()
+      );
+      allow list: if false;
+      allow create: if isValidId(userId)
+        && isBootstrappedAdmin()
+        && isValidAdminRole(incoming(), userId)
+        && incoming().createdAt == request.time;
+      allow update, delete: if false;
+    }
+  }
+}

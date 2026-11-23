@@ -15,6 +15,8 @@ import { AboutPage } from './pages/AboutPage';
 import { ServicesPage } from './pages/ServicesPage';
 import { PortfolioPage } from './pages/PortfolioPage';
 import { ContactPage } from './pages/ContactPage';
+import { AdminPage } from './pages/AdminPage';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { PortfolioProject, SERVICES } from './data/agencyData';
 
 function getInitialRoute(): AppRoute {
@@ -24,6 +26,7 @@ function getInitialRoute(): AppRoute {
   if (path === '/services' || path.startsWith('/services/')) return 'services';
   if (path === '/portfolio' || path.startsWith('/portfolio/')) return 'portfolio';
   if (path === '/contact' || path.startsWith('/contact/')) return 'contact';
+  if (path === '/admin' || path.startsWith('/admin/')) return 'admin';
   return 'home';
 }
 
@@ -51,6 +54,8 @@ export default function App() {
       document.title = 'Portfolio — Winner Designs | Your Partner for Digital Wins';
     } else if (route === 'contact') {
       document.title = 'Contact — Winner Designs | Your Partner for Digital Wins';
+    } else if (route === 'admin') {
+      document.title = 'Admin Dashboard — Winner Designs | Portfolio Manager';
     } else {
       document.title = 'Winner Designs — Your Partner for Digital Wins';
     }
@@ -85,7 +90,9 @@ export default function App() {
             ? '/portfolio'
             : targetRoute === 'contact'
               ? '/contact'
-              : '/';
+              : targetRoute === 'admin'
+                ? '/admin'
+                : '/';
 
     if (window.location.pathname !== nextPath) {
       window.history.pushState({}, '', nextPath);
@@ -145,31 +152,35 @@ export default function App() {
           onStartProject={handleOpenInquiry}
         />
 
-        {route === 'about' ? (
-          <AboutPage
-            onStartProject={handleOpenInquiry}
-            onExploreServices={() => handleNavigate('services')}
-          />
-        ) : route === 'services' ? (
-          <ServicesPage onStartProject={handleOpenInquiry} />
-        ) : route === 'portfolio' ? (
-          <PortfolioPage
-            onStartProject={handleOpenInquiry}
-            onNavigateToServices={(hash) => handleNavigate('services', hash)}
-          />
-        ) : route === 'contact' ? (
-          <ContactPage onBackToWebsite={() => handleNavigate('home')} />
-        ) : (
-          <main>
-            <Hero onStartProject={handleOpenInquiry} />
-            <TrustStrip />
-            <AboutSection onDiscoverAbout={() => handleNavigate('about')} />
-            <ServicesSection onSelectService={handleOpenInquiry} />
-            <WhyUsSection />
-            <PortfolioSection onSelectProject={setActiveProject} />
-            <FinalCtaSection onStartProject={handleOpenInquiry} />
-          </main>
-        )}
+        <ErrorBoundary>
+          {route === 'about' ? (
+            <AboutPage
+              onStartProject={handleOpenInquiry}
+              onExploreServices={() => handleNavigate('services')}
+            />
+          ) : route === 'services' ? (
+            <ServicesPage onStartProject={handleOpenInquiry} />
+          ) : route === 'portfolio' ? (
+            <PortfolioPage
+              onStartProject={handleOpenInquiry}
+              onNavigateToServices={(hash) => handleNavigate('services', hash)}
+            />
+          ) : route === 'contact' ? (
+            <ContactPage onBackToWebsite={() => handleNavigate('home')} />
+          ) : route === 'admin' ? (
+            <AdminPage onNavigatePortfolio={() => handleNavigate('portfolio')} />
+          ) : (
+            <main>
+              <Hero onStartProject={handleOpenInquiry} />
+              <TrustStrip />
+              <AboutSection onDiscoverAbout={() => handleNavigate('about')} />
+              <ServicesSection onSelectService={handleOpenInquiry} />
+              <WhyUsSection />
+              <PortfolioSection onSelectProject={setActiveProject} />
+              <FinalCtaSection onStartProject={handleOpenInquiry} />
+            </main>
+          )}
+        </ErrorBoundary>
 
         <Footer
           onNavigate={handleNavigate}

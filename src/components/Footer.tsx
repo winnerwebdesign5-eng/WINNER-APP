@@ -121,6 +121,18 @@ export function Footer({
                   </li>
                 );
               })}
+              <li>
+                <a
+                  href="/admin"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onNavigate('admin');
+                  }}
+                  className="text-sm text-[#A3A3A3] transition-colors duration-200 hover:text-white"
+                >
+                  Admin
+                </a>
+              </li>
             </ul>
           </div>
 
